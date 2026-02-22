@@ -169,41 +169,69 @@ http://localhost:8080/swagger-ui/index.html
 
 ## Dockerfile
 
-```dockerfile
-FROM eclipse-temurin:17-jdk-alpine
-VOLUME /tmp
-COPY target/*.jar app.jar
-ENTRYPOINT ["java","-jar","/app.jar"]
+```FROM eclipse-temurin:17-jdk
+ARG JAR_FILE=target/*.jar
+COPY ${JAR_FILE} app.jar
+ENTRYPOINT ["java", "-jar", "/app.jar"]
 ```
 
 ## docker-compose.yml
 
 ```yaml
 version: '3.8'
+
 services:
-  mysql:
+  db:
     image: mysql:8
     container_name: mysql-db
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: assessment_db
+      MYSQL_DATABASE: assessment
     ports:
       - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
 
   app:
     build: .
-    container_name: product-api
+    container_name: assessment-app
     ports:
       - "8080:8080"
     depends_on:
-      - mysql
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/assessment
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+
+volumes:
+  mysql_data:
 ```
 
 ## Run with Docker
 
 ```bash
-mvn clean package
-docker compose up --build
+mvn clean package -DskipTests (Build Jar)
+docker compose up --build (Start Containers)
+docker ps (Verifying Running Conbtainers)
+```
+
+## Prerequisites
+
+```
+Make sure you have installed:
+	Java 17
+	Maven
+	Docker Desktop
+```
+
+## Access Application
+``` http://localhost:8080 ```
+
+## Pull Image from Docker image
+```
+docker pull dineshjena/assessment-app:1.0 
+docker run -p 8080:8080 dineshjena/assessment-app:1.0
 ```
 
 ---
